@@ -1,0 +1,4 @@
+
+> @cipherpay/verifier-registry@0.1.0 build /home/sean/cipherpaylab/cipherpay-zkaudit/packages/verifier-registry
+> tsc -p tsconfig.json
+

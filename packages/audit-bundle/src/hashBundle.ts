@@ -1,3 +1,3 @@
-export function hashBundle(_payload: string): string {
-  return "";
+export async function hashBundle(_bundle: unknown): Promise<string> {
+  return "TODO_HASH_BUNDLE";
 }

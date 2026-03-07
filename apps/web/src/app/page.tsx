@@ -1,17 +1,34 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-2xl font-bold">CipherPay ZK Audit</h1>
-      <p className="mt-2 text-gray-600">
-        User flows: <a href="/user" className="text-blue-600 underline">/user</a> ·{" "}
-        <a href="/user/activities" className="text-blue-600 underline">/user/activities</a> ·{" "}
-        <a href="/user/export" className="text-blue-600 underline">/user/export</a>
+    <main className="mx-auto max-w-4xl px-6 py-16">
+      <h1 className="text-3xl font-semibold">CipherPay Audit Portal</h1>
+      <p className="mt-3 text-slate-600">
+        Choose a role to continue.
       </p>
-      <p className="mt-2 text-gray-600">
-        Auditor: <a href="/auditor" className="text-blue-600 underline">/auditor</a> ·{" "}
-        <a href="/auditor/upload" className="text-blue-600 underline">/auditor/upload</a> ·{" "}
-        <a href="/auditor/verify" className="text-blue-600 underline">/auditor/verify</a>
-      </p>
+
+      <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <Link
+          href="/user"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:shadow"
+        >
+          <h2 className="text-xl font-medium">User Export</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Select auditable transactions and export a signed audit bundle.
+          </p>
+        </Link>
+
+        <Link
+          href="/auditor"
+          className="rounded-xl border bg-white p-6 shadow-sm transition hover:shadow"
+        >
+          <h2 className="text-xl font-medium">Auditor Verification</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Upload an audit bundle and verify proofs, signatures, and receipts.
+          </p>
+        </Link>
+      </div>
     </main>
   );
 }

@@ -1,2 +1,2 @@
-export * from "./rpc.js";
-export * from "./fetchNullifierRecord.js";
+export * from "./rpc";
+export * from "./fetchNullifierRecord";

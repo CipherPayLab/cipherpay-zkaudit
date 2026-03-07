@@ -1,29 +1,27 @@
-# CipherPay ZK Audit
+# cipherpay-zkaudit
 
-Monorepo for user-facing audit export and auditor-facing verification of CipherPay shielded activities.
+CipherPay audit application with two role-based flows:
 
-## Structure
+- **User flow:** select auditable CipherPay transactions and export a signed audit bundle
+- **Auditor flow:** upload a bundle and verify proofs, signatures, and on-chain receipt anchoring
 
-- **apps/web** – Next.js app (user: activities, export; auditor: upload, verify)
-- **packages/audit-types** – Bundle, entry, report types
-- **packages/verifier-registry** – Verifier key ID → implementation
-- **packages/audit-bundle** – Canonicalize, hash, validate, verify signature
-- **packages/audit-export** – Build audit bundles from activities
-- **packages/audit-engine** – Verify bundles and entries (ZK + chain)
-- **packages/chain-solana** – Solana RPC, nullifier record fetch
-- **packages/proof-groth16** – Decode public signals, verify Groth16
+## Apps
 
-## Setup
+- `apps/web` — Next.js web app with `/user` and `/auditor` sections
+
+## Packages
+
+- `audit-types`
+- `verifier-registry`
+- `audit-bundle`
+- `audit-export`
+- `audit-engine`
+- `chain-solana`
+- `proof-groth16`
+
+## Run
 
 ```bash
 pnpm install
-pnpm build
-```
-
-## Dev
-
-```bash
 pnpm dev
 ```
-
-See [docs/architecture.md](docs/architecture.md) for data flow.

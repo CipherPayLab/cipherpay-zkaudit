@@ -1,3 +1,3 @@
-export function getRpcClient(_url: string): unknown {
-  return undefined;
+export function getSolanaRpcUrl(): string {
+  return process.env.SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 }

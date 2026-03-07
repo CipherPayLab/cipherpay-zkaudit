@@ -1,2 +1,2 @@
-export * from "./verifyAuditBundle.js";
-export * from "./verifyAuditEntry.js";
+export * from "./verifyAuditBundle";
+export * from "./verifyAuditEntry";

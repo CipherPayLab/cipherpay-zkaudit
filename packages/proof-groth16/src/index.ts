@@ -1,2 +1,2 @@
-export * from "./decodePublicSignals.js";
-export * from "./verifyGroth16Proof.js";
+export * from "./decodePublicSignals";
+export * from "./verifyGroth16Proof";

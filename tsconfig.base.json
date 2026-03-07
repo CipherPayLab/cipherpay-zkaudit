@@ -1,18 +1,24 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "declaration": true,
-    "declarationMap": true,
-    "noEmit": false,
-    "isolatedModules": true
-  },
-  "exclude": ["node_modules", "**/dist"]
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@cipherpay/audit-types": ["packages/audit-types/src"],
+      "@cipherpay/verifier-registry": ["packages/verifier-registry/src"],
+      "@cipherpay/audit-bundle": ["packages/audit-bundle/src"],
+      "@cipherpay/audit-export": ["packages/audit-export/src"],
+      "@cipherpay/audit-engine": ["packages/audit-engine/src"],
+      "@cipherpay/chain-solana": ["packages/chain-solana/src"],
+      "@cipherpay/proof-groth16": ["packages/proof-groth16/src"]
+    }
+  }
 }

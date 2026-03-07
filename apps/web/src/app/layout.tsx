@@ -1,19 +1,15 @@
-import type { Metadata } from "next";
 import "./globals.css";
+import type { ReactNode } from "react";
 
-export const metadata: Metadata = {
-  title: "CipherPay ZK Audit",
-  description: "Audit and verify CipherPay shielded activities",
+export const metadata = {
+  title: "CipherPay Audit",
+  description: "User export and auditor verification portal"
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-slate-50 text-slate-900">{children}</body>
     </html>
   );
 }

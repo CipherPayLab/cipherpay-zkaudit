@@ -1,0 +1,4 @@
+
+> @cipherpay/proof-groth16@0.1.0 build /home/sean/cipherpaylab/cipherpay-zkaudit/packages/proof-groth16
+> tsc -p tsconfig.json
+

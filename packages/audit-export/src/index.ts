@@ -1,2 +1,2 @@
-export * from "./buildAuditBundle.js";
-export * from "./mapMessageToEntry.js";
+export * from "./buildAuditBundle";
+export * from "./mapMessageToEntry";

@@ -1,21 +1,16 @@
 {
-  "name": "@cipherpay-zkaudit/audit-engine",
+  "name": "@cipherpay/audit-engine",
   "version": "0.1.0",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf dist"
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@cipherpay-zkaudit/audit-types": "workspace:*",
-    "@cipherpay-zkaudit/audit-bundle": "workspace:*",
-    "@cipherpay-zkaudit/verifier-registry": "workspace:*",
-    "@cipherpay-zkaudit/proof-groth16": "workspace:*",
-    "@cipherpay-zkaudit/chain-solana": "workspace:*"
-  },
-  "devDependencies": {
-    "typescript": "^5.6.0"
+    "@cipherpay/audit-bundle": "workspace:*",
+    "@cipherpay/audit-types": "workspace:*",
+    "@cipherpay/verifier-registry": "workspace:*"
   }
 }

@@ -1,3 +1,3 @@
-export async function fetchNullifierRecord(_nullifierHex: string): Promise<unknown> {
+export async function fetchNullifierRecord(_pda: string) {
   return null;
 }

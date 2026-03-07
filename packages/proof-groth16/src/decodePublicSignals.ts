@@ -1,3 +1,3 @@
-export function decodePublicSignals(_signals: string[]): unknown {
-  return {};
+export function decodePublicSignals(signals: string[] | Record<string, string>) {
+  return signals;
 }

@@ -1,0 +1,4 @@
+
+> @cipherpay/audit-export@0.1.0 build /home/sean/cipherpaylab/cipherpay-zkaudit/packages/audit-export
+> tsc -p tsconfig.json
+
