@@ -2,25 +2,11 @@
 > @cipherpay/web@ build /home/sean/cipherpaylab/cipherpay-zkaudit/apps/web
 > next build
 
- ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
- We detected multiple lockfiles and selected the directory of /home/sean/package-lock.json as the root directory.
- To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
-   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
- Detected additional lockfiles: 
-   * /home/sean/cipherpaylab/cipherpay-zkaudit/pnpm-lock.yaml
-
    ▲ Next.js 15.5.12
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 23.4s
+ ✓ Compiled successfully in 13.2s
    Linting and checking validity of types ...
-
-   We detected TypeScript in your project and reconfigured your tsconfig.json file for you. Strict-mode is set to false by default.
-   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
-
-   	- allowJs was set to true
-   	- incremental was set to true
-
    Collecting page data ...
    Generating static pages (0/13) ...
    Generating static pages (3/13) 
@@ -33,19 +19,19 @@
 Route (app)                                 Size  First Load JS
 ┌ ○ /                                      167 B         105 kB
 ├ ○ /_not-found                            996 B         103 kB
-├ ƒ /api/auditor/verify                    140 B         102 kB
-├ ƒ /api/user/activities                   140 B         102 kB
-├ ƒ /api/user/export                       140 B         102 kB
+├ ƒ /api/auditor/verify                    136 B         102 kB
+├ ƒ /api/user/activities                   136 B         102 kB
+├ ƒ /api/user/export                       136 B         102 kB
 ├ ○ /auditor                               167 B         105 kB
-├ ○ /auditor/upload                        140 B         102 kB
-├ ○ /auditor/verify                        140 B         102 kB
+├ ○ /auditor/upload                        136 B         102 kB
+├ ○ /auditor/verify                        136 B         102 kB
 ├ ○ /user                                  167 B         105 kB
-├ ○ /user/activities                       140 B         102 kB
-└ ○ /user/export                           140 B         102 kB
+├ ○ /user/activities                     2.15 kB         107 kB
+└ ○ /user/export                          1.6 kB         104 kB
 + First Load JS shared by all             102 kB
   ├ chunks/743-33720d133c383396.js       45.7 kB
   ├ chunks/8e6518bb-c26e82767f1faf66.js  54.2 kB
-  └ other shared chunks (total)           1.9 kB
+  └ other shared chunks (total)          1.93 kB
 
 
 ○  (Static)   prerendered as static content
