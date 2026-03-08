@@ -11,5 +11,7 @@ export interface AuditEntryVerificationResult {
 export interface AuditBundleVerificationResult {
   ok: boolean;
   bundle_signature_valid: boolean;
+  bundle_errors: string[];
+  bundle_warnings: string[];
   entries: AuditEntryVerificationResult[];
 }

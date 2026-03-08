@@ -1,17 +1,16 @@
-import type { ActivityItem } from "@/types/activity";
-
 export interface UserExportRequest {
   disclosureLevel: "protocol_only";
+  ownerWalletPubkey: string;
   selectedIds: string[];
-  selectedItems: ActivityItem[];
 }
 
 export function buildExportRequest(input: {
-  selectedItems: ActivityItem[];
+  ownerWalletPubkey: string;
+  selectedIds: string[];
 }): UserExportRequest {
   return {
     disclosureLevel: "protocol_only",
-    selectedIds: input.selectedItems.map((item) => item.id),
-    selectedItems: input.selectedItems
+    ownerWalletPubkey: input.ownerWalletPubkey,
+    selectedIds: input.selectedIds
   };
 }

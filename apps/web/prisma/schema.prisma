@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id                      BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  owner_cipherpay_pub_key String   @unique @db.VarChar(66)
+  owner_curve_pub_x       String?  @db.VarChar(66)
+  owner_curve_pub_y       String?  @db.VarChar(66)
+  note_enc_pub_key        String?  @db.VarChar(128)
+  auth_pub_x              String   @db.VarChar(256)
+  auth_pub_y              String   @db.VarChar(256)
+  username                String   @unique(map: "uq_users_username") @db.VarChar(32)
+  avatar_url              String?  @db.VarChar(256)
+  solana_wallet_address   String?  @db.VarChar(44)
+  created_at              DateTime @default(now())
+  updated_at              DateTime @default(now()) @updatedAt
+
+  sessions sessions[]
+  contacts contacts[]
+  wallets  user_wallets[]
+  atas     user_atas[]
+}
+
+model sessions {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  nonce      String   @db.VarChar(96)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  expires_at DateTime @db.Timestamp(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_sessions_user")
+
+  @@index([expires_at], map: "ix_sessions_expires_at")
+  @@index([user_id], map: "ix_sessions_user_id")
+}
+
+model messages {
+  id                   BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  recipient_key        String    @db.VarChar(66)
+  sender_key           String?   @db.VarChar(66)
+  ciphertext           Bytes
+  ciphertext_audit     Bytes?
+  kind                 String    @db.VarChar(24)
+  amount               String?   @db.VarChar(78)
+  content_hash         String    @unique(map: "uq_messages_content_hash") @db.VarChar(66)
+  commitment_hex       String?   @db.VarChar(64)
+  nullifier_hex        String?   @db.VarChar(64)
+  proof_hex            String?   @db.VarChar(512)
+  proof_public_signals String?   @db.Text
+  verifier_key_id      String    @default("groth16_bn254_v1") @db.VarChar(64)
+  tx_signature         String?   @db.VarChar(88)
+  created_at           DateTime  @default(now()) @db.Timestamp(0)
+  read_at              DateTime? @db.Timestamp(0)
+
+  @@index([read_at], map: "ix_messages_read_at")
+  @@index([recipient_key, created_at(sort: Desc)], map: "ix_messages_recipient_created")
+  @@index([sender_key, created_at(sort: Desc)], map: "ix_messages_sender_created")
+  @@index([commitment_hex], map: "ix_messages_commitment_hex")
+  @@index([nullifier_hex], map: "ix_messages_nullifier_hex")
+  @@index([tx_signature], map: "ix_messages_tx_signature")
+  @@index([amount], map: "ix_messages_amount")
+}
+
+model nullifiers {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  nullifier     Bytes     @db.Binary(32)
+  nullifier_hex String    @unique @db.VarChar(64)
+  pda_address   String    @unique @db.VarChar(44)
+  used          Boolean   @default(false)
+  tx_signature  String?   @db.VarChar(88)
+  event_type    String?   @db.VarChar(24)
+  spent_at      DateTime? @db.Timestamp(0)
+  synced_at     DateTime  @default(now()) @db.Timestamp(0)
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+
+  @@index([used], map: "ix_nullifiers_used")
+  @@index([synced_at], map: "ix_nullifiers_synced")
+  @@index([tx_signature], map: "ix_nullifiers_tx")
+}
+
+model user_wallets {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  chain      String   @db.VarChar(16)
+  address    String   @db.VarChar(128)
+  label      String?  @db.VarChar(64)
+  is_primary Boolean  @default(false)
+  verified   Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  users users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([user_id, chain, address])
+  @@index([user_id, chain])
+  @@index([user_id, is_primary])
+}
+
+model contacts {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  alias      String   @db.VarChar(64)
+  peer_key   String   @db.VarChar(66)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "fk_contacts_user")
+
+  @@unique([user_id, peer_key], map: "uq_contacts_user_peer")
+  @@index([user_id], map: "ix_contacts_user_id")
+}
+
+model api_keys {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  api_key    String   @unique(map: "uq_api_keys_key") @db.VarChar(100)
+  tenant     String   @db.VarChar(64)
+  disabled   Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([tenant], map: "ix_api_keys_tenant")
+}
+
+model user_atas {
+  id          BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id     BigInt   @db.UnsignedBigInt
+  token_mint  String   @db.VarChar(44)
+  ata_address String   @db.VarChar(44)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
+  users users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, token_mint])
+  @@index([user_id])
+  @@index([user_id, token_mint])
+}
+
+model tx {
+  id            BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  chain         String   @default("solana") @db.VarChar(16)
+  commitment    String   @unique(map: "uq_tx_commitment") @db.VarChar(66)
+  leaf_index    Int      @db.UnsignedInt
+  merkle_root   String   @db.VarChar(66)
+  signature     String?  @db.VarChar(120)
+  nullifier_hex String?  @db.VarChar(64)
+  event         String   @db.VarChar(24)
+  timestamp     DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([event, timestamp(sort: Desc)], map: "ix_tx_event_time")
+  @@index([leaf_index], map: "ix_tx_leaf_index")
+  @@index([nullifier_hex], map: "ix_tx_nullifier")
+}

@@ -10,6 +10,12 @@
   },
   "dependencies": {
     "@cipherpay/audit-types": "workspace:*",
+    "bs58": "^6.0.0",
+    "tweetnacl": "^1.0.3",
     "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
   }
 }

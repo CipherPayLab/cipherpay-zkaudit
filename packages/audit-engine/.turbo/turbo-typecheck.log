@@ -1,0 +1,4 @@
+
+> @cipherpay/audit-engine@0.1.0 typecheck /home/sean/cipherpaylab/cipherpay-zkaudit/packages/audit-engine
+> tsc -p tsconfig.json --noEmit
+

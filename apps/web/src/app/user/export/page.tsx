@@ -1,12 +1,23 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { buildExportRequest } from "@/lib/user/buildExportRequest";
-import type { ActivityItem, ActivitiesApiResponse } from "@/types/activity";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+import type {
+  AuditBundleV1,
+  UnsignedAuditBundleV1
+} from "@cipherpay/audit-types";
+import { finalizeSignedAuditBundle } from "@cipherpay/audit-export";
+import { buildExportRequest } from "@/lib/user/buildExportRequest";
+import { downloadBundle } from "@/lib/user/downloadBundle";
+import { signBundleHash } from "@/lib/wallet/signBundleHash";
+import type { ActivityItem, ActivitiesApiResponse } from "@/types/activity";
 
 function UserExportContent() {
   const searchParams = useSearchParams();
+  const wallet = useWallet();
   const idsParam = searchParams.get("ids") ?? "";
 
   const selectedIds = useMemo(
@@ -16,8 +27,11 @@ function UserExportContent() {
 
   const [allItems, setAllItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bundleJson, setBundleJson] = useState<string>("");
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [unsignedBundle, setUnsignedBundle] = useState<UnsignedAuditBundleV1 | null>(null);
+  const [signedBundle, setSignedBundle] = useState<AuditBundleV1 | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,19 +40,31 @@ function UserExportContent() {
       try {
         setLoading(true);
         setError(null);
+        setUnauthorized(false);
 
         const response = await fetch("/api/user/activities", {
           method: "GET",
-          cache: "no-store"
+          cache: "no-store",
+          credentials: "include"
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch activities: ${response.status}`);
+        const data = (await response.json()) as
+          | ActivitiesApiResponse
+          | { ok: false; error?: string };
+
+        if (response.status === 401) {
+          if (!cancelled) {
+            setUnauthorized(true);
+            setAllItems([]);
+          }
+          return;
         }
 
-        const data = (await response.json()) as ActivitiesApiResponse;
+        if (!response.ok) {
+          throw new Error(data && "error" in data ? data.error ?? "Failed to fetch activities" : `Failed to fetch activities: ${response.status}`);
+        }
 
-        if (!cancelled) {
+        if (!cancelled && "items" in data) {
           setAllItems(data.items);
         }
       } catch (err) {
@@ -64,12 +90,19 @@ function UserExportContent() {
     [allItems, selectedIds]
   );
 
-  async function handleExport() {
+  async function handleBuildUnsignedBundle() {
     try {
+      if (!wallet.connected || !wallet.publicKey) {
+        throw new Error("Connect a wallet before building the audit bundle");
+      }
+
+      setBusy(true);
       setError(null);
+      setSignedBundle(null);
 
       const requestBody = buildExportRequest({
-        selectedItems
+        ownerWalletPubkey: wallet.publicKey.toBase58(),
+        selectedIds
       });
 
       const response = await fetch("/api/user/export", {
@@ -77,43 +110,104 @@ function UserExportContent() {
         headers: {
           "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify(requestBody)
       });
 
-      if (!response.ok) {
-        throw new Error(`Export failed: ${response.status}`);
+      const data = await response.json();
+
+      if (response.status === 401) {
+        setUnauthorized(true);
+        throw new Error("Please sign in to CipherPay first");
       }
 
-      const data = await response.json();
-      setBundleJson(JSON.stringify(data.bundle, null, 2));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error ?? `Export failed: ${response.status}`);
+      }
+
+      setUnsignedBundle(data.unsignedBundle as UnsignedAuditBundleV1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSignBundle() {
+    try {
+      if (!unsignedBundle) {
+        throw new Error("No unsigned bundle available");
+      }
+
+      setBusy(true);
+      setError(null);
+
+      const signResult = await signBundleHash({
+        wallet,
+        bundleHashHex: unsignedBundle.integrity.bundle_hash_sha256
+      });
+
+      const finalized = finalizeSignedAuditBundle({
+        unsignedBundle,
+        signerPubkey: signResult.signerPubkey,
+        signatureBase64: signResult.signatureBase64
+      });
+
+      setSignedBundle(finalized);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setBusy(false);
     }
   }
 
   function handleDownload() {
-    if (!bundleJson) return;
-
-    const blob = new Blob([bundleJson], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "cipherpay-audit-bundle.json";
-    anchor.click();
-
-    URL.revokeObjectURL(url);
+    if (!signedBundle) return;
+    downloadBundle("cipherpay-audit-bundle.json", signedBundle);
   }
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="text-2xl font-semibold">Export Audit Bundle</h1>
-      <p className="mt-2 text-slate-600">
-        Review the selected transactions and export a protocol-only audit bundle.
-      </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Export Audit Bundle</h1>
+          <p className="mt-2 text-slate-600">
+            Review selected transactions, build an unsigned bundle, sign its hash,
+            and download the final audit file.
+          </p>
+        </div>
+
+        <WalletMultiButton />
+      </div>
 
       <div className="mt-6 space-y-4">
-        {loading ? (
+        {unauthorized ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-amber-900">
+              Sign in to CipherPay first
+            </h2>
+            <p className="mt-2 text-sm text-amber-800">
+              Your CipherPay session is missing or expired. Sign in through CipherPay,
+              then come back here to export your audit bundle.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a
+                href={process.env.NEXT_PUBLIC_CIPHERPAY_APP_URL ?? "https://cp.appfounder.ca"}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm text-white hover:bg-amber-700"
+              >
+                Open CipherPay
+              </a>
+
+              <Link
+                href="/user/activities"
+                className="rounded-lg border border-amber-300 px-4 py-2 text-sm text-amber-900"
+              >
+                Back to Activities
+              </Link>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="rounded-xl border bg-white p-6 text-sm text-slate-600 shadow-sm">
             Loading selected activities...
           </div>
@@ -142,6 +236,9 @@ function UserExportContent() {
                         {item.amount} {item.token_symbol}
                       </div>
                       <div className="mt-1 text-slate-500">ID: {item.id}</div>
+                      <div className="mt-1 text-slate-500">
+                        Nullifier PDA: {item.nullifier_record_pda ?? "—"}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -149,45 +246,100 @@ function UserExportContent() {
             </div>
 
             <div className="rounded-xl border bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold">Disclosure Level</h2>
+              <h2 className="text-lg font-semibold">Export Flow</h2>
               <p className="mt-2 text-sm text-slate-600">
                 v1 uses <span className="font-medium">protocol_only</span>.
               </p>
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-2 text-sm text-slate-600">
+                Connected wallet:{" "}
+                <span className="font-mono">
+                  {wallet.publicKey?.toBase58() ?? "Not connected"}
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={handleExport}
-                  disabled={selectedItems.length === 0}
+                  onClick={handleBuildUnsignedBundle}
+                  disabled={selectedItems.length === 0 || !wallet.connected || busy}
                   className={`rounded-lg px-4 py-2 text-sm text-white ${
-                    selectedItems.length === 0
+                    selectedItems.length === 0 || !wallet.connected || busy
                       ? "bg-slate-300"
                       : "bg-indigo-600 hover:bg-indigo-700"
                   }`}
                 >
-                  Build Bundle
+                  Build Unsigned Bundle
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSignBundle}
+                  disabled={!unsignedBundle || !wallet.connected || busy}
+                  className={`rounded-lg px-4 py-2 text-sm text-white ${
+                    !unsignedBundle || !wallet.connected || busy
+                      ? "bg-slate-300"
+                      : "bg-amber-600 hover:bg-amber-700"
+                  }`}
+                >
+                  Sign Bundle Hash
                 </button>
 
                 <button
                   type="button"
                   onClick={handleDownload}
-                  disabled={!bundleJson}
+                  disabled={!signedBundle || busy}
                   className={`rounded-lg px-4 py-2 text-sm text-white ${
-                    !bundleJson
+                    !signedBundle || busy
                       ? "bg-slate-300"
                       : "bg-emerald-600 hover:bg-emerald-700"
                   }`}
                 >
-                  Download JSON
+                  Download Signed JSON
                 </button>
               </div>
+
+              {!wallet.connected ? (
+                <p className="mt-4 text-sm text-amber-700">
+                  Connect a wallet to build and sign the bundle.
+                </p>
+              ) : null}
             </div>
 
-            {bundleJson && (
+            {unsignedBundle && (
               <div className="rounded-xl border bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-semibold">Generated Bundle</h2>
+                <h2 className="text-lg font-semibold">Unsigned Bundle</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Header owner wallet:{" "}
+                  <span className="font-mono text-xs">
+                    {unsignedBundle.header.owner.wallet_pubkey}
+                  </span>
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Bundle hash:{" "}
+                  <span className="font-mono text-xs">
+                    {unsignedBundle.integrity.bundle_hash_sha256}
+                  </span>
+                </p>
+
                 <pre className="mt-4 overflow-x-auto rounded-lg bg-slate-950 p-4 text-xs text-slate-100">
-                  {bundleJson}
+                  {JSON.stringify(unsignedBundle, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {signedBundle && (
+              <div className="rounded-xl border bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-semibold">Signed Bundle</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Signature signer:{" "}
+                  <span className="font-mono text-xs">
+                    {signedBundle.integrity.signature.signer_pubkey}
+                  </span>
+                </p>
+
+                <pre className="mt-4 overflow-x-auto rounded-lg bg-slate-950 p-4 text-xs text-slate-100">
+                  {JSON.stringify(signedBundle, null, 2)}
                 </pre>
               </div>
             )}

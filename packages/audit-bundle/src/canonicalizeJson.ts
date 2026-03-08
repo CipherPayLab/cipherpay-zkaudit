@@ -3,12 +3,12 @@ function sortRecursively(value: unknown): unknown {
     return value.map(sortRecursively);
   }
 
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>)
+  if (value !== null && typeof value === "object") {
+    const sortedEntries = Object.entries(value as Record<string, unknown>)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, nestedValue]) => [key, sortRecursively(nestedValue)]);
 
-    return Object.fromEntries(entries);
+    return Object.fromEntries(sortedEntries);
   }
 
   return value;

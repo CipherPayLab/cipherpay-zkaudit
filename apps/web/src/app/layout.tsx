@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import { CipherPayWalletProvider } from "@/components/shared/WalletProvider";
 
 export const metadata = {
   title: "CipherPay Audit",
@@ -9,7 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-slate-50 text-slate-900">{children}</body>
+      <body className="bg-slate-50 text-slate-900">
+        <CipherPayWalletProvider>{children}</CipherPayWalletProvider>
+      </body>
     </html>
   );
 }

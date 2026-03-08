@@ -11,6 +11,8 @@
   "dependencies": {
     "@cipherpay/audit-bundle": "workspace:*",
     "@cipherpay/audit-types": "workspace:*",
+    "@cipherpay/chain-solana": "workspace:*",
+    "@cipherpay/proof-groth16": "workspace:*",
     "@cipherpay/verifier-registry": "workspace:*"
   }
 }

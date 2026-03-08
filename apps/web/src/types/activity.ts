@@ -8,6 +8,7 @@ export interface ActivityItem {
   token_symbol: string;
   tx_signature?: string;
   nullifier_hex?: string | null;
+  nullifier_record_pda?: string | null;
   proof_hex?: string | null;
   proof_public_signals?: string | null;
   verifier_key_id?: string | null;

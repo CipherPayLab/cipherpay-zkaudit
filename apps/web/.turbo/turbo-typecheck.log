@@ -1,0 +1,4 @@
+
+> @cipherpay/web@ typecheck /home/sean/cipherpaylab/cipherpay-zkaudit/apps/web
+> tsc --noEmit
+

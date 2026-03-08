@@ -1,4 +1,6 @@
-export const transferVerifierV1 = {
+import type { VerifierDefinition } from "./types";
+
+export const transferVerifierV1: VerifierDefinition = {
   verifier_key_id: "groth16_bn254_v1",
   event_type: "transfer",
   proof_format: "groth16_bn254",
@@ -11,5 +13,6 @@ export const transferVerifierV1 = {
     "out2_commitment",
     "ownerCipherPayPubKey",
     "new_next_leaf_index"
-  ]
-} as const;
+  ],
+  verifying_key_path: typeof process !== "undefined" ? process.env?.CIPHERPAY_TRANSFER_VKEY_PATH : undefined
+};

@@ -10,5 +10,9 @@
   },
   "dependencies": {
     "@cipherpay/audit-types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
   }
 }

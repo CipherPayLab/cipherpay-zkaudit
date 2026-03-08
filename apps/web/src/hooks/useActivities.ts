@@ -12,6 +12,7 @@ export function useActivities(options: UseActivitiesOptions = {}) {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,19 +21,31 @@ export function useActivities(options: UseActivitiesOptions = {}) {
       try {
         setLoading(true);
         setError(null);
+        setUnauthorized(false);
 
         const response = await fetch("/api/user/activities", {
           method: "GET",
-          cache: "no-store"
+          cache: "no-store",
+          credentials: "include"
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch activities: ${response.status}`);
+        const data = (await response.json()) as
+          | ActivitiesApiResponse
+          | { ok: false; error?: string };
+
+        if (response.status === 401) {
+          if (!cancelled) {
+            setUnauthorized(true);
+            setItems([]);
+          }
+          return;
         }
 
-        const data = (await response.json()) as ActivitiesApiResponse;
+        if (!response.ok) {
+          throw new Error(data && "error" in data ? data.error ?? "Failed to fetch activities" : `Failed to fetch activities: ${response.status}`);
+        }
 
-        if (!cancelled) {
+        if (!cancelled && "items" in data) {
           setItems(data.items);
         }
       } catch (err) {
@@ -74,6 +87,7 @@ export function useActivities(options: UseActivitiesOptions = {}) {
   return {
     items: filteredItems,
     loading,
-    error
+    error,
+    unauthorized
   };
 }

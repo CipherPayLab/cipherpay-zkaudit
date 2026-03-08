@@ -1,0 +1,4 @@
+
+> @cipherpay/chain-solana@0.1.0 typecheck /home/sean/cipherpaylab/cipherpay-zkaudit/packages/chain-solana
+> tsc -p tsconfig.json --noEmit
+
