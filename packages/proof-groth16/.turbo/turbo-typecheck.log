@@ -1,4 +1,0 @@
-
-> @cipherpay/proof-groth16@0.1.0 typecheck /home/sean/cipherpaylab/cipherpay-zkaudit/packages/proof-groth16
-> tsc -p tsconfig.json --noEmit
-
