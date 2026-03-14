@@ -8,6 +8,16 @@ interface AuditableActivityListProps {
   onToggle: (id: string) => void;
 }
 
+const LAMPORTS_PER_SOL = 1e9;
+
+function formatAmount(amount: string, tokenSymbol: string): string {
+  if (tokenSymbol !== "SOL") return `${amount} ${tokenSymbol}`;
+  const lamports = Number(amount);
+  if (Number.isNaN(lamports)) return `${amount} ${tokenSymbol}`;
+  const sol = lamports / LAMPORTS_PER_SOL;
+  return `${sol % 1 === 0 ? sol : sol.toFixed(4)} ${tokenSymbol}`;
+}
+
 function isAuditable(item: ActivityItem): boolean {
   return (
     (item.kind === "transfer" || item.kind === "withdraw") &&
@@ -57,9 +67,13 @@ export function AuditableActivityList({
                     onChange={() => onToggle(item.id)}
                   />
                 </td>
-                <td className="px-4 py-3 font-medium capitalize">{item.kind}</td>
+                <td className="px-4 py-3 font-medium">
+                  {item.kind === "transfer" || item.kind === "withdraw" || item.kind === "deposit"
+                    ? `Note-${item.kind.charAt(0).toUpperCase()}${item.kind.slice(1)}`
+                    : item.kind}
+                </td>
                 <td className="px-4 py-3">
-                  {item.amount} {item.token_symbol}
+                  {formatAmount(item.amount, item.token_symbol)}
                 </td>
                 <td className="px-4 py-3">{item.counterparty ?? "—"}</td>
                 <td className="px-4 py-3 text-slate-600">

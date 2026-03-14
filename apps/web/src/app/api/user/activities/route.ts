@@ -3,6 +3,19 @@ import type { ActivitiesApiResponse, ActivityItem } from "@/types/activity";
 import { requireCurrentUserFromSession } from "@/server/auth";
 import { getUserActivities } from "@/server/queries/getUserActivities";
 
+function normalizeActivityKind(dbKind: string): ActivityItem["kind"] {
+  switch (dbKind) {
+    case "note-transfer":
+      return "transfer";
+    case "note-withdraw":
+      return "withdraw";
+    case "note-deposit":
+      return "deposit";
+    default:
+      return (dbKind as ActivityItem["kind"]) || "deposit";
+  }
+}
+
 function mapRowToActivityItem(
   row: Awaited<ReturnType<typeof getUserActivities>>[number],
   ownerCipherPayPubKey: string
@@ -19,9 +32,11 @@ function mapRowToActivityItem(
     counterparty = row.sender_key;
   }
 
+  const kind = normalizeActivityKind(row.kind);
+
   return {
     id: row.id.toString(),
-    kind: row.kind as ActivityItem["kind"],
+    kind,
     counterparty,
     amount: row.amount ?? "0",
     token_symbol: "SOL",
