@@ -13,7 +13,7 @@ export default function UserActivitiesPage() {
   const [kind, setKind] = useState<ActivityKind | "all">("all");
   const [search, setSearch] = useState("");
 
-  const { items, loading, error, unauthorized } = useActivities({ kind, search });
+  const { items, loading, error, unauthorized, refresh } = useActivities({ kind, search });
   const { selectedIds, isSelected, toggle, clear } = useSelection(items);
 
   const exportHref = useMemo(() => {
@@ -73,6 +73,8 @@ export default function UserActivitiesPage() {
               selectedCount={selectedIds.length}
               exportHref={exportHref}
               onClear={clear}
+              onRefresh={refresh}
+              refreshing={loading}
             />
 
             {loading ? (

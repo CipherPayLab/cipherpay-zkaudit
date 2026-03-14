@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ActivityItem, ActivitiesApiResponse, ActivityKind } from "@/types/activity";
 
 interface UseActivitiesOptions {
@@ -13,6 +13,9 @@ export function useActivities(options: UseActivitiesOptions = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +67,7 @@ export function useActivities(options: UseActivitiesOptions = {}) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   const filteredItems = useMemo(() => {
     const q = options.search?.trim().toLowerCase() ?? "";
@@ -88,6 +91,7 @@ export function useActivities(options: UseActivitiesOptions = {}) {
     items: filteredItems,
     loading,
     error,
-    unauthorized
+    unauthorized,
+    refresh
   };
 }

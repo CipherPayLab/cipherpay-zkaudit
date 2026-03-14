@@ -32,8 +32,9 @@ export async function getUserActivities(ownerCipherPayPubKey: string) {
       n.pda_address AS nullifier_record_pda
     FROM messages m
     LEFT JOIN nullifiers n ON m.nullifier_hex = n.nullifier_hex
-    WHERE m.sender_key = ${ownerCipherPayPubKey}
-       OR m.recipient_key = ${ownerCipherPayPubKey}
+    WHERE (m.sender_key = ${ownerCipherPayPubKey}
+       OR m.recipient_key = ${ownerCipherPayPubKey})
+      AND NOT (m.kind = 'note-transfer' AND m.sender_key = m.recipient_key)
     ORDER BY m.created_at DESC
   `;
   return rows;
