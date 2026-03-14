@@ -15,6 +15,16 @@ import { downloadBundle } from "@/lib/user/downloadBundle";
 import { signBundleHash } from "@/lib/wallet/signBundleHash";
 import type { ActivityItem, ActivitiesApiResponse } from "@/types/activity";
 
+const LAMPORTS_PER_SOL = 1e9;
+
+function formatAmount(amount: string, tokenSymbol: string): string {
+  if (tokenSymbol !== "SOL") return `${amount} ${tokenSymbol}`;
+  const lamports = Number(amount);
+  if (Number.isNaN(lamports)) return `${amount} ${tokenSymbol}`;
+  const sol = lamports / LAMPORTS_PER_SOL;
+  return `${sol % 1 === 0 ? sol : sol.toFixed(4)} ${tokenSymbol}`;
+}
+
 function UserExportContent() {
   const searchParams = useSearchParams();
   const wallet = useWallet();
@@ -33,6 +43,8 @@ function UserExportContent() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   function refresh() {
     setRefreshKey((k) => k + 1);
@@ -185,7 +197,7 @@ function UserExportContent() {
           </p>
         </div>
 
-        <WalletMultiButton />
+        {mounted && <WalletMultiButton />}
       </div>
 
       <div className="mt-6 space-y-4">
@@ -263,7 +275,7 @@ function UserExportContent() {
                     >
                       <div className="font-medium capitalize">{item.kind}</div>
                       <div className="mt-1">
-                        {item.amount} {item.token_symbol}
+                        {formatAmount(item.amount, item.token_symbol)}
                       </div>
                       <div className="mt-1 text-slate-500">ID: {item.id}</div>
                       <div className="mt-1 text-slate-500">

@@ -24,7 +24,9 @@ export async function verifyBundleSignature(bundle: AuditBundleV1): Promise<bool
   try {
     const publicKey = bs58.decode(signer);
     const signature = base64ToBytes(signatureBase64);
-    const message = hexToBytes(hashHex);
+    // Verify over the UTF-8 bytes of the hex string (matches signBundleHash.ts).
+    // This avoids Phantom's transaction-detection rejection of raw hash bytes.
+    const message = new TextEncoder().encode(hashHex);
     return nacl.sign.detached.verify(message, signature, publicKey);
   } catch {
     return false;

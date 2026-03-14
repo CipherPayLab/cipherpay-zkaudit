@@ -39,7 +39,12 @@ export async function signBundleHash(input: {
   if (!wallet.signMessage) {
     throw new Error("Connected wallet does not support message signing");
   }
-  const messageBytes = hexToBytes(bundleHashHex);
+
+  // Sign the UTF-8 bytes of the hex string (e.g. "a3f2...") rather than the
+  // raw 32-byte hash. Raw bytes can trigger Phantom's transaction-detection
+  // check ("You cannot sign solana transactions using sign message").
+  // The verifier (verifyBundleSignature.ts) encodes the hash the same way.
+  const messageBytes = new TextEncoder().encode(bundleHashHex);
   const signatureBytes = await wallet.signMessage(messageBytes);
   return {
     signerPubkey: wallet.publicKey.toBase58(),

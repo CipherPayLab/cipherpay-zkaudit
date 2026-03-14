@@ -17,8 +17,11 @@ export interface ExportableMessage {
 }
 
 function normalizeEventType(kind: string): AuditEventType {
-  if (kind === "transfer" || kind === "withdraw" || kind === "deposit") {
-    return kind;
+  // Accept both DB-prefixed forms ("note-transfer") and bare forms ("transfer").
+  const bare = kind.startsWith("note-") ? kind.slice("note-".length) : kind;
+
+  if (bare === "transfer" || bare === "withdraw" || bare === "deposit") {
+    return bare;
   }
 
   throw new Error(`Unsupported audit event type: ${kind}`);
