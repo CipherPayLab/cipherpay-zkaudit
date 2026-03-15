@@ -2,6 +2,12 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+
+function truncate(str: string, head = 6, tail = 4) {
+  if (str.length <= head + tail + 3) return str;
+  return `${str.slice(0, head)}…${str.slice(-tail)}`;
+}
 import { useSearchParams } from "next/navigation";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -45,6 +51,7 @@ function UserExportContent() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+  const currentUser = useCurrentUser();
 
   function refresh() {
     setRefreshKey((k) => k + 1);
@@ -183,7 +190,8 @@ function UserExportContent() {
 
   function handleDownload() {
     if (!signedBundle) return;
-    downloadBundle("cipherpay-audit-bundle.json", signedBundle);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    downloadBundle(`cipherpay-audit-bundle-${timestamp}.json`, signedBundle);
   }
 
   return (
@@ -197,7 +205,43 @@ function UserExportContent() {
           </p>
         </div>
 
-        {mounted && <WalletMultiButton />}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/user/activities"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition-colors"
+          >
+            ← Home
+          </Link>
+          {mounted && currentUser ? (
+            <div className="shrink-0 rounded-xl border bg-white px-4 py-3 shadow-sm text-sm">
+              <div className="font-medium text-slate-900">
+                {currentUser.username ?? "Unknown User"}
+              </div>
+              {currentUser.solana_wallet_address && (
+                <div
+                  className="mt-1 font-mono text-xs text-slate-500 cursor-pointer"
+                  title={currentUser.solana_wallet_address}
+                  onClick={() =>
+                    navigator.clipboard.writeText(currentUser.solana_wallet_address!)
+                  }
+                >
+                  {truncate(currentUser.solana_wallet_address, 8, 6)}
+                </div>
+              )}
+              <div
+                className="mt-1 font-mono text-xs text-slate-400 cursor-pointer"
+                title={currentUser.owner_cipherpay_pub_key}
+                onClick={() =>
+                  navigator.clipboard.writeText(currentUser.owner_cipherpay_pub_key)
+                }
+              >
+                CP: {truncate(currentUser.owner_cipherpay_pub_key, 8, 6)}
+              </div>
+            </div>
+          ) : mounted ? (
+            <WalletMultiButton />
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-6 space-y-4">
@@ -273,13 +317,54 @@ function UserExportContent() {
                       key={item.id}
                       className="rounded-lg border p-4 text-sm text-slate-700"
                     >
-                      <div className="font-medium capitalize">{item.kind}</div>
-                      <div className="mt-1">
-                        {formatAmount(item.amount, item.token_symbol)}
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold capitalize">{item.kind}</span>
+                        <span className="text-base font-bold text-slate-900">
+                          {formatAmount(item.amount, item.token_symbol)}
+                        </span>
                       </div>
-                      <div className="mt-1 text-slate-500">ID: {item.id}</div>
-                      <div className="mt-1 text-slate-500">
-                        Nullifier PDA: {item.nullifier_record_pda ?? "—"}
+
+                      <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                        <span className="text-slate-400">Sender</span>
+                        <span className="font-medium text-slate-700">
+                          {item.sender_name
+                            ? item.sender_name
+                            : item.sender_key
+                              ? truncate(item.sender_key, 8, 6)
+                              : "—"}
+                        </span>
+
+                        <span className="text-slate-400">Recipient</span>
+                        <span className="font-medium text-slate-700">
+                          {item.recipient_name
+                            ? item.recipient_name
+                            : item.recipient_key
+                              ? truncate(item.recipient_key, 8, 6)
+                              : "—"}
+                        </span>
+
+                        <span className="text-slate-400">Time</span>
+                        <span className="text-slate-600">
+                          {new Date(item.created_at).toLocaleString()}
+                        </span>
+
+                        <span className="text-slate-400">ID</span>
+                        <span className="font-mono text-slate-500">{item.id}</span>
+
+                        {item.nullifier_record_pda && (
+                          <>
+                            <span className="text-slate-400">PDA</span>
+                            <span
+                              className="font-mono text-slate-400 cursor-pointer"
+                              title={item.nullifier_record_pda}
+                              onClick={() =>
+                                navigator.clipboard.writeText(item.nullifier_record_pda!)
+                              }
+                            >
+                              {truncate(item.nullifier_record_pda, 8, 6)}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}

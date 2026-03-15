@@ -4,6 +4,10 @@ export interface ActivityItem {
   id: string;
   kind: ActivityKind;
   counterparty?: string;
+  sender_key?: string | null;
+  sender_name?: string | null;
+  recipient_key?: string | null;
+  recipient_name?: string | null;
   amount: string;
   token_symbol: string;
   tx_signature?: string;

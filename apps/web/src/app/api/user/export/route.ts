@@ -4,7 +4,7 @@ import { requireCurrentUserFromSession } from "@/server/auth";
 import { getMessagesForExport } from "@/server/queries/getMessagesForExport";
 
 interface ExportRequestBody {
-  disclosureLevel: "protocol_only";
+  disclosureLevel: "protocol_only" | "amount_only" | "recipient_only" | "full";
   ownerWalletPubkey: string;
   selectedIds: string[];
 }
@@ -84,15 +84,22 @@ export async function POST(request: Request) {
       messages: rows.map((row) => ({
         id: row.id.toString(),
         kind: row.kind,
+        amount: row.amount,
+        sender_key: row.sender_key,
+        sender_name: row.sender_name,
+        recipient_key: row.recipient_key,
+        recipient_name: row.recipient_name,
+        created_at: row.created_at,
+        tx_signature: row.tx_signature,
+        nullifier_tx_sig: row.nullifier_tx_sig,
+        spent_at_unix: row.spent_at_unix != null ? Number(row.spent_at_unix) : null,
         nullifier_hex: row.nullifier_hex,
         nullifier_record_pda: row.nullifier_record_pda,
         proof_hex: row.proof_hex,
         proof_public_signals: row.proof_public_signals,
         verifier_key_id: row.verifier_key_id,
-        tx_signature: row.tx_signature,
-        amount: row.amount
       })),
-      disclosureLevel: body.disclosureLevel
+      disclosureLevel: body.disclosureLevel ?? "full"
     });
 
     return NextResponse.json({

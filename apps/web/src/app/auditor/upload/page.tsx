@@ -63,6 +63,8 @@ export default function AuditorUploadPage() {
 
       console.log("[VerifyBundle] Success — redirecting to /auditor/verify");
       sessionStorage.setItem("cipherpay_audit_result", JSON.stringify(data.result));
+      // Also persist the bundle so the verify page can include transaction details in the report
+      sessionStorage.setItem("cipherpay_audit_bundle", JSON.stringify(bundle));
       router.push("/auditor/verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown verification error");

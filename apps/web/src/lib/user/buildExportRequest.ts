@@ -1,5 +1,5 @@
 export interface UserExportRequest {
-  disclosureLevel: "protocol_only";
+  disclosureLevel: "full";
   ownerWalletPubkey: string;
   selectedIds: string[];
 }
@@ -9,7 +9,7 @@ export function buildExportRequest(input: {
   selectedIds: string[];
 }): UserExportRequest {
   return {
-    disclosureLevel: "protocol_only",
+    disclosureLevel: "full",
     ownerWalletPubkey: input.ownerWalletPubkey,
     selectedIds: input.selectedIds
   };

@@ -7,7 +7,13 @@ import { AuditableActivityList } from "@/components/user/AuditableActivityList";
 import { SelectionToolbar } from "@/components/user/SelectionToolbar";
 import { useActivities } from "@/hooks/useActivities";
 import { useSelection } from "@/hooks/useSelection";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { ActivityKind } from "@/types/activity";
+
+function truncate(str: string, head = 6, tail = 4) {
+  if (str.length <= head + tail + 3) return str;
+  return `${str.slice(0, head)}…${str.slice(-tail)}`;
+}
 
 export default function UserActivitiesPage() {
   const [kind, setKind] = useState<ActivityKind | "all">("all");
@@ -15,6 +21,7 @@ export default function UserActivitiesPage() {
 
   const { items, loading, error, unauthorized, refresh } = useActivities({ kind, search });
   const { selectedIds, isSelected, toggle, clear } = useSelection(items);
+  const currentUser = useCurrentUser();
 
   const exportHref = useMemo(() => {
     const params = new URLSearchParams();
@@ -28,10 +35,42 @@ export default function UserActivitiesPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <h1 className="text-2xl font-semibold">Select Auditable Transactions</h1>
-      <p className="mt-2 text-slate-600">
-        Choose transfer and withdraw transactions to include in an audit bundle.
-      </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Select Auditable Transactions</h1>
+          <p className="mt-2 text-slate-600">
+            Choose transfer and withdraw transactions to include in an audit bundle.
+          </p>
+        </div>
+
+        {currentUser && (
+          <div className="shrink-0 rounded-xl border bg-white px-4 py-3 shadow-sm text-sm">
+            <div className="font-medium text-slate-900">
+              {currentUser.username ?? "Unknown User"}
+            </div>
+            {currentUser.solana_wallet_address && (
+              <div
+                className="mt-1 font-mono text-xs text-slate-500 cursor-pointer"
+                title={currentUser.solana_wallet_address}
+                onClick={() =>
+                  navigator.clipboard.writeText(currentUser.solana_wallet_address!)
+                }
+              >
+                {truncate(currentUser.solana_wallet_address, 8, 6)}
+              </div>
+            )}
+            <div
+              className="mt-1 font-mono text-xs text-slate-400 cursor-pointer"
+              title={currentUser.owner_cipherpay_pub_key}
+              onClick={() =>
+                navigator.clipboard.writeText(currentUser.owner_cipherpay_pub_key)
+              }
+            >
+              CP: {truncate(currentUser.owner_cipherpay_pub_key, 8, 6)}
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="mt-6 space-y-4">
         {unauthorized ? (

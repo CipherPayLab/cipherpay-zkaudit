@@ -25,7 +25,10 @@ export interface AuditBundleEntry {
   selective_disclosure: {
     level: DisclosureLevel;
     amount?: string;
+    sender?: string;
+    sender_name?: string;
     recipient?: string;
+    recipient_name?: string;
     memo?: string;
   };
   entry_integrity: {
