@@ -16,6 +16,12 @@ export interface ExportableMessage {
   amount?: string | null;
 }
 
+const DEFAULT_VERIFIER_KEY_ID: Record<AuditEventType, string> = {
+  transfer: "groth16_bn254_v1",
+  withdraw: "groth16_withdraw_bn254_v1",
+  deposit: "groth16_deposit_bn254_v1",
+};
+
 function normalizeEventType(kind: string): AuditEventType {
   // Accept both DB-prefixed forms ("note-transfer") and bare forms ("transfer").
   const bare = kind.startsWith("note-") ? kind.slice("note-".length) : kind;
@@ -65,7 +71,7 @@ export function mapMessageToEntry(
       tx_signature: message.tx_signature ?? undefined
     },
     proof_artifacts: {
-      verifier_key_id: message.verifier_key_id ?? "groth16_bn254_v1",
+      verifier_key_id: message.verifier_key_id ?? DEFAULT_VERIFIER_KEY_ID[normalizeEventType(message.kind)],
       groth16_proof: message.proof_hex ?? "",
       public_signals: parsePublicSignals(message.proof_public_signals)
     },
