@@ -5,8 +5,26 @@ import type {
 import { decodePublicSignals, verifyGroth16Proof } from "@cipherpay/proof-groth16";
 import { fetchNullifierRecord } from "@cipherpay/chain-solana";
 
-function normalizeHex(value: string): string {
-  return value.startsWith("0x") ? value.slice(2).toLowerCase() : value.toLowerCase();
+/**
+ * Convert a decimal public signal string (snarkjs format) to big-endian 32-byte hex.
+ * e.g. "12345678..." → "0000...abcd"
+ */
+function decimalSignalToBEHex(decimal: string): string {
+  return BigInt(decimal).toString(16).padStart(64, "0").toLowerCase();
+}
+
+/**
+ * Convert a little-endian 32-byte hex string (from on-chain Anchor storage) to big-endian hex.
+ * The relayer encodes each public signal as LE bytes; the NullifierRecord stores them unchanged.
+ */
+function leHexToBeHex(leHex: string): string {
+  const clean = leHex.startsWith("0x") ? leHex.slice(2) : leHex;
+  // Reverse byte-by-byte: split into 2-char byte groups, reverse, rejoin
+  const bytes: string[] = [];
+  for (let i = 0; i < clean.length; i += 2) {
+    bytes.push(clean.slice(i, i + 2));
+  }
+  return bytes.reverse().join("").toLowerCase();
 }
 
 export async function verifyAuditEntry(
@@ -58,15 +76,16 @@ export async function verifyAuditEntry(
         errors.push("NullifierRecord not found on-chain");
       } else {
         const oldRoot = decodedSignals.old_root
-          ? normalizeHex(decodedSignals.old_root)
+          ? decimalSignalToBEHex(decodedSignals.old_root)
           : undefined;
 
         const afterRoot = decodedSignals.new_root2
-          ? normalizeHex(decodedSignals.new_root2)
+          ? decimalSignalToBEHex(decodedSignals.new_root2)
           : undefined;
 
-        const recordBefore = normalizeHex(record.merkle_root_before);
-        const recordAfter = normalizeHex(record.merkle_root_after);
+        // On-chain roots are stored as LE bytes (relayer uses le32 encoding); convert to BE for comparison.
+        const recordBefore = leHexToBeHex(record.merkle_root_before);
+        const recordAfter = leHexToBeHex(record.merkle_root_after);
 
         const beforeMatch = oldRoot ? oldRoot === recordBefore : false;
         const afterMatch = afterRoot ? afterRoot === recordAfter : false;
