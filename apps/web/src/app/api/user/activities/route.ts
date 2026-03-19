@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import type { ActivitiesApiResponse, ActivityItem } from "@/types/activity";
 import { requireCurrentUserFromSession } from "@/server/auth";
-import { getUserActivities } from "@/server/queries/getUserActivities";
+import {
+  getUserActivities,
+  type UserActivityRow
+} from "@/server/queries/getUserActivities";
 
 function normalizeActivityKind(dbKind: string): ActivityItem["kind"] {
   switch (dbKind) {
@@ -17,7 +20,7 @@ function normalizeActivityKind(dbKind: string): ActivityItem["kind"] {
 }
 
 function mapRowToActivityItem(
-  row: Awaited<ReturnType<typeof getUserActivities>>[number],
+  row: UserActivityRow,
   ownerCipherPayPubKey: string
 ): ActivityItem {
   let counterparty: string | undefined;
@@ -59,7 +62,7 @@ export async function GET() {
     const user = await requireCurrentUserFromSession();
     const rows = await getUserActivities(user.owner_cipherpay_pub_key);
 
-    const items = rows.map((row) =>
+    const items = rows.map((row: UserActivityRow) =>
       mapRowToActivityItem(row, user.owner_cipherpay_pub_key)
     );
 
