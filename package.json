@@ -7,7 +7,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "clean": "rm -rf packages/*/dist packages/*/.turbo packages/*/node_modules apps/*/.next apps/*/.turbo .turbo node_modules"
+    "clean": "rm -rf packages/*/dist packages/*/.turbo packages/*/node_modules apps/*/.next apps/*/.turbo apps/*/node_modules .turbo node_modules"
   },
   "devDependencies": {
     "turbo": "^2.4.4",
