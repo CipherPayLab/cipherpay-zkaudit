@@ -378,11 +378,16 @@ function UserExportContent() {
                 v1 uses <span className="font-medium">protocol_only</span>.
               </p>
 
-              <div className="mt-2 text-sm text-slate-600">
-                Connected wallet:{" "}
-                <span className="font-mono">
-                  {wallet.publicKey?.toBase58() ?? "Not connected"}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className="text-sm text-slate-600">
+                  Connected wallet:{" "}
+                  <span className="font-mono">
+                    {wallet.publicKey?.toBase58() ?? "Not connected"}
+                  </span>
                 </span>
+                {!wallet.connected && (
+                  <WalletMultiButton className="!h-8 !rounded-lg" />
+                )}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -427,9 +432,14 @@ function UserExportContent() {
               </div>
 
               {!wallet.connected ? (
-                <p className="mt-4 text-sm text-amber-700">
-                  Connect a wallet to build and sign the bundle.
-                </p>
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm text-amber-700">
+                    Connect your Solana wallet (e.g. Phantom) above to build and sign the bundle.
+                  </p>
+                  <p className="text-xs text-amber-600">
+                    If Phantom shows &quot;Solana Localnet is enabled&quot;, disable it in Phantom → Settings → Developer Settings so the wallet can connect.
+                  </p>
+                </div>
               ) : null}
             </div>
 
