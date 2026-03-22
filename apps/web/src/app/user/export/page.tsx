@@ -19,6 +19,10 @@ import { finalizeSignedAuditBundle } from "@cipherpay/audit-export";
 import { buildExportRequest } from "@/lib/user/buildExportRequest";
 import { downloadBundle } from "@/lib/user/downloadBundle";
 import { signBundleHash } from "@/lib/wallet/signBundleHash";
+import {
+  consumeCipherPayTokenFromHash,
+  mergeCipherpayFetchInit
+} from "@/lib/cipherpayClientAuth";
 import type { ActivityItem, ActivitiesApiResponse } from "@/types/activity";
 
 const LAMPORTS_PER_SOL = 1e9;
@@ -69,11 +73,15 @@ function UserExportContent() {
         setError(null);
         setUnauthorized(false);
 
-        const response = await fetch("/api/user/activities", {
-          method: "GET",
-          cache: "no-store",
-          credentials: "include"
-        });
+        consumeCipherPayTokenFromHash();
+
+        const response = await fetch(
+          "/api/user/activities",
+          mergeCipherpayFetchInit({
+            method: "GET",
+            cache: "no-store"
+          })
+        );
 
         const data = (await response.json()) as
           | ActivitiesApiResponse
@@ -126,20 +134,23 @@ function UserExportContent() {
       setBusy(true);
       setError(null);
       setSignedBundle(null);
+      consumeCipherPayTokenFromHash();
 
       const requestBody = buildExportRequest({
         ownerWalletPubkey: wallet.publicKey.toBase58(),
         selectedIds
       });
 
-      const response = await fetch("/api/user/export", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify(requestBody)
-      });
+      const response = await fetch(
+        "/api/user/export",
+        mergeCipherpayFetchInit({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestBody)
+        })
+      );
 
       const data = await response.json();
 

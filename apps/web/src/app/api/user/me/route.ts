@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserFromSession } from "@/server/auth";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/user/me
  * Returns the current user from the session cookie, or 401 if no valid session.

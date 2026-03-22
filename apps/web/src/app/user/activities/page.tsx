@@ -79,8 +79,14 @@ export default function UserActivitiesPage() {
               Sign in to CipherPay first
             </h2>
             <p className="mt-2 text-sm text-amber-800">
-              We could not find a valid CipherPay session for this browser. Please sign
-              in through CipherPay first, then return to the audit portal.
+              Sign in on CipherPay, open the <strong>Dashboard</strong>, then click{" "}
+              <strong>Audit portal</strong> (opens this site with your token). Opening
+              zkaudit in a new tab without that link will not send your session.
+            </p>
+            <p className="mt-2 text-xs text-amber-700">
+              Server must set{" "}
+              <code className="rounded bg-amber-100 px-1">JWT_SECRET</code> (same as
+              cipherpay-server) in this app&apos;s environment.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">

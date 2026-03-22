@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type { ActivitiesApiResponse, ActivityItem } from "@/types/activity";
 import { requireCurrentUserFromSession } from "@/server/auth";
+
+export const dynamic = "force-dynamic";
 import {
   getUserActivities,
   type UserActivityRow

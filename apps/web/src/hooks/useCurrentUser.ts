@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import {
+  consumeCipherPayTokenFromHash,
+  mergeCipherpayFetchInit
+} from "@/lib/cipherpayClientAuth";
 
 export interface CurrentUser {
   id: string;
@@ -11,7 +15,8 @@ export function useCurrentUser() {
   const [user, setUser] = useState<CurrentUser | null>(null);
 
   useEffect(() => {
-    fetch("/api/user/me", { credentials: "include" })
+    consumeCipherPayTokenFromHash();
+    fetch("/api/user/me", mergeCipherpayFetchInit({}))
       .then((r) => r.json())
       .then((data) => {
         if (data.ok) setUser(data.user as CurrentUser);

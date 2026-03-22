@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ActivityItem, ActivitiesApiResponse, ActivityKind } from "@/types/activity";
+import {
+  consumeCipherPayTokenFromHash,
+  mergeCipherpayFetchInit
+} from "@/lib/cipherpayClientAuth";
 
 interface UseActivitiesOptions {
   kind?: ActivityKind | "all";
@@ -26,11 +30,15 @@ export function useActivities(options: UseActivitiesOptions = {}) {
         setError(null);
         setUnauthorized(false);
 
-        const response = await fetch("/api/user/activities", {
-          method: "GET",
-          cache: "no-store",
-          credentials: "include"
-        });
+        consumeCipherPayTokenFromHash();
+
+        const response = await fetch(
+          "/api/user/activities",
+          mergeCipherpayFetchInit({
+            method: "GET",
+            cache: "no-store"
+          })
+        );
 
         const data = (await response.json()) as
           | ActivitiesApiResponse
